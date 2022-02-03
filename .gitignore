@@ -1,0 +1,16 @@
+# IDE
+.idea
+.vscode
+
+# build folder
+target
+
+# node_modules
+node_modules
+
+# BundleAnalyzerPlugin report
+report.html
+
+.eslintcache
+
+*.log

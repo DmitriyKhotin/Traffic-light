@@ -1,0 +1,41 @@
+.light {
+  height: 100px;
+  width: 100px;
+  opacity: 0.2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid black;
+  border-radius: 50%;
+  margin: 4px;
+  font-size: 54px;
+}
+
+.active {
+  opacity: 1;
+}
+
+.redLight {
+  background-color: red;
+}
+
+.yellowLight {
+  background-color: yellow;
+}
+
+.greenLight {
+  background-color: #32d932;
+}
+
+.flashing {
+  animation-name: flashing;
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+
+@keyframes flashing {
+  0% {
+    background-color: transparent;
+  }
+}
