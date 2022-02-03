@@ -1,30 +1,31 @@
-import { debugLog } from './utils/debugLog'
 import { ref, Ref } from 'vue';
-export type Light = "red" | "yellow" | "green";
+
+import { debugLog } from './utils/debugLog';
+export type Light = 'red' | 'yellow' | 'green';
 
 // 0 - вниз, 1 - вверх
 type Direction = 0 | 1;
 const LightNumber = {
   red: 0,
   yellow: 1,
-  green: 2
-}
+  green: 2,
+};
 
 interface ILightByRoute {
-  [route: string]: Light
+  [route: string]: Light;
 }
 
 export const LightByRoute: ILightByRoute = {
-  "/red": "red",
-  "/yellow": "yellow",
-  "/green": "green"
-}
+  '/red': 'red',
+  '/yellow': 'yellow',
+  '/green': 'green',
+};
 
 type Condition<T> = (prevValue: T, newValue: T) => boolean;
 
 type Seconds = number;
 
-type Callback<T> = (value: T) => void
+type Callback<T> = (value: T) => void;
 // finally state machine
 class FSM<T> {
   private value: T;
@@ -37,12 +38,14 @@ class FSM<T> {
   }
 
   dispatch(newValue: T) {
-      if (this.condition(this.value, newValue)) {
-        this.value = newValue;
-        this.callbacks.forEach((callback: Callback<T>) => callback(this.value));
-      } else {
-        throw new Error(`Dispatched wrong value in FSM. Wrong value: ${newValue}`)
-      }
+    if (this.condition(this.value, newValue)) {
+      this.value = newValue;
+      this.callbacks.forEach((callback: Callback<T>) => callback(this.value));
+    } else {
+      throw new Error(
+        `Dispatched wrong value in FSM. Wrong value: ${newValue}`
+      );
+    }
   }
 
   add(callback: Callback<T>) {
@@ -58,7 +61,7 @@ class FSM<T> {
   }
 }
 
- export class TrafficLightController {
+export class TrafficLightController {
   private currentLight;
   private direction: Direction = 0;
   private currentTime: Seconds = 0;
@@ -68,7 +71,7 @@ class FSM<T> {
   public currentTimeRef: Ref<Seconds> = ref(0);
 
   constructor(currenLight: Light) {
-    debugLog("init TrafficLightController with light:", currenLight);
+    debugLog('init TrafficLightController with light:', currenLight);
     // если горит зеленый, то направление вверх. В остальных случаях - вниз
     if (LightNumber[currenLight] === 2) {
       this.direction = 1;
@@ -76,30 +79,38 @@ class FSM<T> {
 
     this.currentLightRef = ref(currenLight);
 
-    this.currentLight = new FSM<Light>(currenLight, ((prevValue, newValue) => {
+    this.currentLight = new FSM<Light>(currenLight, (prevValue, newValue) => {
       // красный -> желтый -> зеленый
-      if (this.direction === 0 && LightNumber[newValue] > LightNumber[prevValue]) {
-        return true
+      if (
+        this.direction === 0 &&
+        LightNumber[newValue] > LightNumber[prevValue]
+      ) {
+        return true;
       }
 
       // красный <- желтый <- зеленый
-      if (this.direction === 1 && LightNumber[newValue] < LightNumber[prevValue]) {
-        return true
+      if (
+        this.direction === 1 &&
+        LightNumber[newValue] < LightNumber[prevValue]
+      ) {
+        return true;
       }
 
       return false;
-    }));
+    });
 
     this.currentLight.add((newValue) => {
-      debugLog("disptached new light:", newValue);
+      debugLog('disptached new light:', newValue);
       this.toogleTimer();
 
-      window.history.pushState("state", "something", `/${this.getCurrentLight()}`) ;
+      window.history.pushState(
+        'state',
+        'something',
+        `/${this.getCurrentLight()}`
+      );
       this.currentLightRef.value = newValue;
       localStorage.setItem('currentLight', newValue);
-    })
-
-
+    });
   }
 
   getCurrentLight(): Light {
@@ -111,10 +122,17 @@ class FSM<T> {
   / иначе - дефолтное время
   */
   startTrafficLight() {
-    const currentLightFromLocalStorage = localStorage.getItem('currentLight') as Light;
-    const currentTimeFromLocalStorage = Number(localStorage.getItem('currentTime')) as Seconds;
+    const currentLightFromLocalStorage = localStorage.getItem(
+      'currentLight'
+    ) as Light;
+    const currentTimeFromLocalStorage = Number(
+      localStorage.getItem('currentTime')
+    ) as Seconds;
 
-    if (this.getCurrentLight() === currentLightFromLocalStorage && currentTimeFromLocalStorage) {
+    if (
+      this.getCurrentLight() === currentLightFromLocalStorage &&
+      currentTimeFromLocalStorage
+    ) {
       this.startTimer(currentTimeFromLocalStorage);
     } else {
       localStorage.setItem('currentLight', this.getCurrentLight());
@@ -123,39 +141,41 @@ class FSM<T> {
   }
 
   private toogleTimer() {
-
-    if (this.getCurrentLight() === "red") {
+    if (this.getCurrentLight() === 'red') {
       this.startTimer(10); // по условию красный горит 10 секунд
     }
 
-    if (this.getCurrentLight()  === "yellow") {
+    if (this.getCurrentLight() === 'yellow') {
       this.startTimer(3); // по условию желтый горит 3 секунд
     }
 
-    if (this.getCurrentLight()  === "green") {
+    if (this.getCurrentLight() === 'green') {
       this.startTimer(15); // по условию зеленый горит 15 секунд
     }
   }
 
   private dispatchNextLight() {
-    if (this.getCurrentLight() === "red" || this.getCurrentLight() === "green") {
-      this.currentLight.dispatch("yellow");
-      return
+    if (
+      this.getCurrentLight() === 'red' ||
+      this.getCurrentLight() === 'green'
+    ) {
+      this.currentLight.dispatch('yellow');
+      return;
     }
 
     // красный -> желтый -> зеленый
     if (this.direction === 0) {
-      this.currentLight.dispatch("green");
+      this.currentLight.dispatch('green');
       this.direction = 1;
-      return
+      return;
     }
 
-    this.currentLight.dispatch("red");
+    this.currentLight.dispatch('red');
     this.direction = 0;
   }
 
   private startTimer(seconds: Seconds) {
-    debugLog("startTimer for:", seconds, "seconds");
+    debugLog('startTimer for:', seconds, 'seconds');
     this.currentTime = seconds;
     this.currentTimeRef.value = seconds;
     this.timerId = setInterval(() => {
@@ -169,7 +189,7 @@ class FSM<T> {
       } else {
         localStorage.setItem('currentTime', this.currentTime.toString());
       }
-    }, 1000)
+    }, 1000);
   }
 
   private stopTimer() {
